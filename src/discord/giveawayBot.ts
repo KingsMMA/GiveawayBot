@@ -91,8 +91,8 @@ export default class GiveawayBot extends Client {
         });
 
         if (winners.length === 0) return await message.reply('No one entered the giveaway, so there are no winners.');
-        else await message.reply(`Congratulations to ${winners.map(winner => `<@${winner}>`)
-            .join(', ')} for winning the giveaway for **${giveaway.prize}**!`);
+        else await message.reply(`**:tada: Giveaway ended! :tada:**\n\n**Winners:** ${winners.map(winner => `<@${winner}>`).join(' ')
+        }\n**Prize:** \`${giveaway.prize}\`\n\nCongratulations!`);
     }
 
     scheduleGiveawayEnd(guild_id: Snowflake, message_url: string, end_time: number) {
