@@ -37,7 +37,8 @@ export default class {
 
                 if (giveaway.ended) return interaction.replyError('This giveaway has ended.');
 
-                const member = await interaction.guild!.members.fetch(interaction.user.id);
+                const member = await interaction.guild!.members.fetch(interaction.user.id)
+                    .catch(() => undefined);
                 if (!member) return interaction.replyError('You are not in this server.');
 
                 if (giveaway.role) {
@@ -76,7 +77,8 @@ export default class {
                 });
             } else if (interaction.customId.startsWith('giveaway:leave:')) {
                 await interaction.deferReply({ ephemeral: true });
-                const message = await interaction.channel!.messages.fetch(interaction.customId.split(':')[2]);
+                const message = await interaction.channel!.messages.fetch(interaction.customId.split(':')[2])
+                    .catch(() => undefined);
                 if (!message) return interaction.replyError('This giveaway does not exist.');
 
                 const giveaway = await this.client.main.mongo.fetchGiveaway(interaction.guildId!, message.url);

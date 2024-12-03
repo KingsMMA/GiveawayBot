@@ -1,5 +1,5 @@
 import type {
-    ChatInputCommandInteraction
+    ChatInputCommandInteraction, GuildTextBasedChannel
 } from 'discord.js';
 import {
     ActionRowBuilder,
@@ -61,6 +61,24 @@ export default class GiveawayCommand extends BaseCommand {
                         },
                     ],
                 },
+                {
+                    name: 'reroll',
+                    description: 'Reroll a giveaway.',
+                    type: ApplicationCommandOptionType.Subcommand,
+                    options: [
+                        {
+                            name: 'message_url',
+                            description: 'The message url of the giveaway.',
+                            type: ApplicationCommandOptionType.String,
+                            required: true,
+                        },
+                        {
+                            name: 'winners',
+                            description: 'The amount of winners to reroll.',
+                            type: ApplicationCommandOptionType.Integer,
+                        },
+                    ],
+                },
             ],
         });
     }
@@ -71,6 +89,8 @@ export default class GiveawayCommand extends BaseCommand {
         switch (interaction.options.getSubcommand()) {
             case 'start':
                 return this.startGiveaway(interaction);
+            case 'reroll':
+                return this.rerollGiveaway(interaction);
             default:
                 return interaction.replyError('Invalid subcommand.');
         }
@@ -84,7 +104,8 @@ export default class GiveawayCommand extends BaseCommand {
         const role = interaction.options.getRole('role');
         const message = interaction.options.getString('message') || '';
 
-        const channel = await interaction.guild!.channels.fetch(channelOption.id);
+        const channel = await interaction.guild!.channels.fetch(channelOption.id)
+            .catch(() => undefined);
         if (!channel)
             return interaction.replyError('The channel could not be found.');
         if (!channel.isTextBased() || channel.isVoiceBased())
@@ -92,6 +113,9 @@ export default class GiveawayCommand extends BaseCommand {
 
         if (role && !interaction.guild!.roles.cache.has(role.id))
             return interaction.replyError('The role could not be found.');
+
+        if (winners < 1)
+            return interaction.replyError('There must be at least 1 winner.');
 
         const endDate = this.durationToEndDate(duration);
 
@@ -134,6 +158,42 @@ export default class GiveawayCommand extends BaseCommand {
             ]
         });
 
+    }
+
+    async rerollGiveaway(interaction: ChatInputCommandInteraction) {
+        const messageUrl = interaction.options.getString('message_url', true);
+        const winners = interaction.options.getInteger('winners') || 1;
+
+        const giveaway = await this.client.main.mongo.fetchGiveaway(interaction.guildId!, messageUrl);
+        if (!giveaway)
+            return interaction.replyError('The giveaway could not be found.');
+
+        const channel_id = messageUrl.split('/').slice(-2)[0];
+        const message_id = messageUrl.split('/').slice(-1)[0];
+        const channel = await interaction.guild!.channels.fetch(channel_id)
+            .catch(() => undefined);
+        if (!channel)
+            return interaction.replyError('The channel could not be found.');
+
+        const giveawayMessage = await (channel as GuildTextBasedChannel).messages.fetch(message_id)
+            .catch(() => undefined);
+        if (!giveawayMessage)
+            return interaction.replyError('The giveaway message could not be found.');
+
+        const entries = await this.client.main.mongo.fetchGiveaway(interaction.guildId!, messageUrl)
+            .then(giveaway => giveaway?.entries || []);
+        if (entries.length < winners)
+            return interaction.replyError('There are not enough entries to reroll that many winners.');
+
+        const winnersList = entries
+            .sort(() => Math.random() - 0.5)
+            .slice(0, winners)
+            .map(entry => `<@${entry}>`);
+
+        await giveawayMessage.reply(`**:tada: Giveaway rerolled! :tada:**\n\n**New winners:** ${winnersList.join(' ')
+        }\n**Prize:** \`${giveaway.prize}\`\n\nCongratulations!`);
+
+        return interaction.replySuccess(`The giveaway has been rerolled with \`${winnersList.length}\` winners.`);
     }
 
     durationToEndDate(duration: string): Date {

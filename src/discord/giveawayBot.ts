@@ -61,12 +61,13 @@ export default class GiveawayBot extends Client {
         const message = await channel.messages.fetch(message_id);
 
         const entries = giveaway.entries.length;
+        let giveawayEntries = giveaway.entries.map(entry => `<@${entry}>`);
         const winners = [];
         for (let i = 0; i < giveaway.winners; i++) {
-            if (giveaway.entries.length === 0) break;
-            const winner = giveaway.entries[Math.floor(Math.random() * giveaway.entries.length)];
+            if (giveawayEntries.length === 0) break;
+            const winner = giveawayEntries[Math.floor(Math.random() * giveawayEntries.length)];
             winners.push(winner);
-            giveaway.entries = giveaway.entries.filter(entry => entry !== winner);
+            giveawayEntries = giveawayEntries.filter(entry => entry !== winner);
         }
 
         await message.edit({
@@ -91,7 +92,7 @@ export default class GiveawayBot extends Client {
         });
 
         if (winners.length === 0) return await message.reply('No one entered the giveaway, so there are no winners.');
-        else await message.reply(`**:tada: Giveaway ended! :tada:**\n\n**Winners:** ${winners.map(winner => `<@${winner}>`).join(' ')
+        else await message.reply(`**:tada: Giveaway ended! :tada:**\n\n**Winners:** ${winners.join(' ')
         }\n**Prize:** \`${giveaway.prize}\`\n\nCongratulations!`);
     }
 
