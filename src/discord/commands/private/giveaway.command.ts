@@ -11,6 +11,7 @@ import { ApplicationCommandOptionType, ApplicationCommandType } from 'discord-ap
 import type GiveawayBot from '../../giveawayBot';
 import KingsDevEmbedBuilder from '../../utils/kingsDevEmbedBuilder';
 import BaseCommand from '../base.command';
+import {Snowflake} from "discord-api-types/globals";
 
 export default class GiveawayCommand extends BaseCommand {
     constructor(client: GiveawayBot) {
@@ -117,11 +118,12 @@ export default class GiveawayCommand extends BaseCommand {
         await this.client.main.mongo.createGiveaway(
             interaction.guildId!,
             giveawayMessage.url,
-            endDate.getDate(),
+            endDate.getTime(),
             prize,
             winners,
             role?.id
         );
+        this.client.scheduleGiveawayEnd(interaction.guildId!, giveawayMessage.url, endDate.getTime());
 
         return interaction.editReply({
             embeds: [

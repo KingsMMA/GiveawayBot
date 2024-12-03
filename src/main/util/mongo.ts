@@ -3,6 +3,7 @@ import { MongoClient } from 'mongodb';
 
 import type Main from '../main';
 import {Snowflake} from "discord-api-types/globals";
+import {Giveaway} from "../../discord/giveawayBot";
 
 export default class Mongo {
     private mongo!: Db;
@@ -15,6 +16,21 @@ export default class Mongo {
         const client = await MongoClient.connect(process.env.MONGO_URI!);
         this.mongo = client.db(this.main.config.mongo.database);
         console.info(`Connected to Database ${this.mongo.databaseName}`);
+
+        console.info('Loading giveaways...');
+        for (const guild of this.main.client.guilds.cache.values()) {
+            const giveaways = await this.main.client.main.mongo.fetchGiveaways(guild.id);
+            if (!giveaways) continue;
+
+            let activeGiveaways = Object.fromEntries(
+                Object.entries(giveaways)
+                    .filter(([url, giveaway]) => !giveaway.ended)
+            );
+            console.log(`Loaded ${Object.keys(activeGiveaways).length} active giveaways for guild ${guild.id} (${guild.name}).`);
+            for (const [url, giveaway] of Object.entries(activeGiveaways)) {
+                this.main.client.scheduleGiveawayEnd(guild.id, url, giveaway.end_time);
+            }
+        }
     }
 
     async createGiveaway(guild_id: Snowflake, message_url: string, end_time: number, prize: string, winners: number, role?: Snowflake): Promise<void> {
@@ -25,13 +41,13 @@ export default class Mongo {
                 { upsert: true });
     }
 
-    async fetchGiveaways(guild_id: Snowflake): Promise<{ ended: boolean, end_time: number, prize: string, winners: number, role?: Snowflake, entries: Snowflake[] }[]> {
+    async fetchGiveaways(guild_id: Snowflake): Promise<Record<string, Giveaway>> {
         return this.mongo.collection("giveaways")
             .findOne({ guild_id: guild_id })
-            .then((doc) => Object.values(doc?.giveaways || {}));
+            .then((doc) => doc?.giveaways || {});
     }
 
-    async fetchGiveaway(guild_id: Snowflake, message_url: string): Promise<{ ended: boolean, end_time: number, prize: string, winners: number, role?: Snowflake, entries: Snowflake[] } | null> {
+    async fetchGiveaway(guild_id: Snowflake, message_url: string): Promise<Giveaway | null> {
         return this.mongo.collection("giveaways")
             .findOne({ guild_id: guild_id })
             .then((doc) => doc?.giveaways[message_url.replace(/\./g, '[D]')] || null);
@@ -49,6 +65,13 @@ export default class Mongo {
             .updateOne(
                 { guild_id: guild_id },
                 { $pull: { [`giveaways.${message_url.replace(/\./g, '[D]')}.entries`]: user_id } });
+    }
+
+    async updateGiveaway(guild_id: Snowflake, message_url: string, giveaway: Giveaway): Promise<void> {
+        return void this.mongo.collection("giveaways")
+            .updateOne(
+                { guild_id: guild_id },
+                { $set: { [`giveaways.${message_url.replace(/\./g, '[D]')}`]: giveaway } });
     }
 
 }

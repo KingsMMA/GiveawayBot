@@ -34,6 +34,8 @@ export default class {
                 const giveaway = await this.client.main.mongo.fetchGiveaway(interaction.guildId!, interaction.message.url);
                 if (!giveaway) return interaction.replyError('This giveaway does not exist.');
 
+                if (giveaway.ended) return interaction.replyError('This giveaway has ended.');
+
                 const member = await interaction.guild!.members.fetch(interaction.user.id);
                 if (!member) return interaction.replyError('You are not in this server.');
 
@@ -78,6 +80,8 @@ export default class {
 
                 const giveaway = await this.client.main.mongo.fetchGiveaway(interaction.guildId!, message.url);
                 if (!giveaway) return interaction.replyError('This giveaway does not exist.');
+
+                if (giveaway.ended) return interaction.replyError('This giveaway has ended.');
 
                 if (!giveaway.entries.includes(interaction.user.id))
                     return interaction.replyError('You have not entered this giveaway.');
