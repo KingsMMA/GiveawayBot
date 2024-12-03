@@ -1,14 +1,14 @@
-import {ActionRowBuilder, ButtonBuilder, ButtonStyle, ClientOptions, GuildTextBasedChannel} from 'discord.js';
+import type { ClientOptions, GuildTextBasedChannel } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { Client, Collection } from 'discord.js';
+import type { Snowflake } from 'discord-api-types/globals';
 import type { PathLike } from 'fs';
+import scheduler from 'node-schedule';
 import path from 'path';
 
 import type Main from '../main/main';
 import type BaseCommand from './commands/base.command';
-import {Snowflake} from "discord-api-types/globals";
-
-import scheduler from 'node-schedule';
-import KingsDevEmbedBuilder from "./utils/kingsDevEmbedBuilder";
+import KingsDevEmbedBuilder from './utils/kingsDevEmbedBuilder';
 
 export type Giveaway = {
     ended: boolean,
@@ -60,7 +60,7 @@ export default class GiveawayBot extends Client {
         const channel = await this.channels.fetch(channel_id) as GuildTextBasedChannel;
         const message = await channel.messages.fetch(message_id);
 
-        let entries = giveaway.entries.length;
+        const entries = giveaway.entries.length;
         const winners = [];
         for (let i = 0; i < giveaway.winners; i++) {
             if (giveaway.entries.length === 0) break;
@@ -73,7 +73,8 @@ export default class GiveawayBot extends Client {
             embeds: [
                 new KingsDevEmbedBuilder()
                     .setTitle(giveaway.prize)
-                    .setDescription(`This giveaway has ended\n\n**Winners:** ${giveaway.winners}\n**Ended:** ${new Date(giveaway.end_time).toDiscord('relative')}${giveaway.role ? `\n**Role requirement:** <@&${giveaway.role}>` : ''}`)
+                    .setDescription(`This giveaway has ended\n\n**Winners:** ${giveaway.winners}\n**Ended:** ${new Date(giveaway.end_time)
+                        .toDiscord('relative')}${giveaway.role ? `\n**Role requirement:** <@&${giveaway.role}>` : ''}`)
                     .setColor('Red')
             ],
             components: [
@@ -90,13 +91,14 @@ export default class GiveawayBot extends Client {
         });
 
         if (winners.length === 0) return await message.reply('No one entered the giveaway, so there are no winners.');
-        else await message.reply(`Congratulations to ${winners.map(winner => `<@${winner}>`).join(', ')} for winning the giveaway for **${giveaway.prize}**!`);
+        else await message.reply(`Congratulations to ${winners.map(winner => `<@${winner}>`)
+            .join(', ')} for winning the giveaway for **${giveaway.prize}**!`);
     }
 
     scheduleGiveawayEnd(guild_id: Snowflake, message_url: string, end_time: number) {
-        let now = new Date();
+        const now = new Date();
         now.setSeconds(now.getSeconds() + 3);
-        let end = new Date(end_time);
+        const end = new Date(end_time);
         if (now >= end) return void this.giveawayEnded(guild_id, message_url);
         else return void scheduler.scheduleJob(new Date(end_time), () => this.giveawayEnded(guild_id, message_url));
     }

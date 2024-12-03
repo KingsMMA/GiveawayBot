@@ -2,8 +2,8 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { init } from '../discord/init';
 import type GiveawayBot from '../discord/giveawayBot';
+import { init } from '../discord/init';
 import loggerInitialisedMessage from '../discord/utils/typeEdit';
 import type config from './data/config.json';
 import Mongo from './util/mongo';

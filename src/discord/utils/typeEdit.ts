@@ -1,5 +1,6 @@
 import chalk from 'chalk';
-import {ButtonInteraction, InteractionResponse, Message} from 'discord.js';
+import type { InteractionResponse, Message } from 'discord.js';
+import { ButtonInteraction } from 'discord.js';
 import { CommandInteraction } from 'discord.js';
 
 import KingsDevEmbedBuilder from './kingsDevEmbedBuilder';
@@ -51,8 +52,10 @@ declare module 'discord.js' {
 String.prototype.toProperCase = function (this: string) {
     return this.split(' ')
         .map(
-            (word) =>
-                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+            word =>
+                word.charAt(0)
+                    .toUpperCase() + word.slice(1)
+                    .toLowerCase(),
         )
         .join(' ');
 };
@@ -100,8 +103,10 @@ Array.prototype.equals = function (array) {
     if (this == null || array == null) return false;
     if (this.length !== array.length) return false;
 
-    let a = Object.assign([], this).toSorted();
-    let b = Object.assign([], array).toSorted();
+    const a = Object.assign([], this)
+        .toSorted();
+    const b = Object.assign([], array)
+        .toSorted();
     for (let i = 0; i < a.length; ++i) {
         if (a[i] !== b[i]) return false;
     }

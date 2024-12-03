@@ -22,7 +22,7 @@
             }
         ],
         "newline-per-chained-call": ["error", { "ignoreChainWithDepth": 1 }],
-        "indent": ["error", 4],
+        "indent": ["error", 4, { "SwitchCase": 1 }],
         "array-bracket-newline": ["error", { "multiline": true, "minItems": 1 }],
         "eol-last": ["error", "always"],
         "comma-dangle": ["error", "only-multiline"],

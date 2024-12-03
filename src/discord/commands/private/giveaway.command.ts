@@ -1,9 +1,10 @@
+import type {
+    ChatInputCommandInteraction
+} from 'discord.js';
 import {
     ActionRowBuilder,
-    AutocompleteInteraction,
     ButtonBuilder,
-    ButtonStyle,
-    ChatInputCommandInteraction
+    ButtonStyle
 } from 'discord.js';
 import { PermissionsBitField } from 'discord.js';
 import { ApplicationCommandOptionType, ApplicationCommandType } from 'discord-api-types/v10';
@@ -11,7 +12,6 @@ import { ApplicationCommandOptionType, ApplicationCommandType } from 'discord-ap
 import type GiveawayBot from '../../giveawayBot';
 import KingsDevEmbedBuilder from '../../utils/kingsDevEmbedBuilder';
 import BaseCommand from '../base.command';
-import {Snowflake} from "discord-api-types/globals";
 
 export default class GiveawayCommand extends BaseCommand {
     constructor(client: GiveawayBot) {
@@ -69,10 +69,10 @@ export default class GiveawayCommand extends BaseCommand {
         await interaction.deferReply();
 
         switch (interaction.options.getSubcommand()) {
-            case "start":
+            case 'start':
                 return this.startGiveaway(interaction);
             default:
-                return interaction.replyError("Invalid subcommand.");
+                return interaction.replyError('Invalid subcommand.');
         }
     }
 
@@ -84,18 +84,18 @@ export default class GiveawayCommand extends BaseCommand {
         const role = interaction.options.getRole('role');
         const message = interaction.options.getString('message') || '';
 
-        let channel = await interaction.guild!.channels.fetch(channelOption.id);
+        const channel = await interaction.guild!.channels.fetch(channelOption.id);
         if (!channel)
-            return interaction.replyError("The channel could not be found.");
+            return interaction.replyError('The channel could not be found.');
         if (!channel.isTextBased() || channel.isVoiceBased())
-            return interaction.replyError("The channel must be a text channel.");
+            return interaction.replyError('The channel must be a text channel.');
 
         if (role && !interaction.guild!.roles.cache.has(role.id))
-            return interaction.replyError("The role could not be found.");
+            return interaction.replyError('The role could not be found.');
 
         const endDate = this.durationToEndDate(duration);
 
-        let giveawayMessage = await channel.send({
+        const giveawayMessage = await channel.send({
             content: message,
             embeds: [
                 new KingsDevEmbedBuilder()
@@ -128,7 +128,7 @@ export default class GiveawayCommand extends BaseCommand {
         return interaction.editReply({
             embeds: [
                 new KingsDevEmbedBuilder()
-                    .setTitle("Giveaway Started")
+                    .setTitle('Giveaway Started')
                     .setDescription(`The giveaway for **${prize}** has started in <#${channel.id}>.\n[Jump to Message](${giveawayMessage.url})`)
                     .setColor('Green')
             ]

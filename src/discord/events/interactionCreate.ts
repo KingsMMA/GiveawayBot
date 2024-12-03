@@ -1,4 +1,5 @@
-import {ActionRowBuilder, ButtonBuilder, ButtonStyle, Interaction} from 'discord.js';
+import type { Interaction } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 import type GiveawayBot from '../giveawayBot';
 
