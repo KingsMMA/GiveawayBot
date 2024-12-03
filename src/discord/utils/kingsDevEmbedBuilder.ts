@@ -9,4 +9,9 @@ export default class KingsDevEmbedBuilder extends EmbedBuilder {
         });
         this.setTimestamp(new Date());
     }
+
+    addField(name: string, value: string, inline = false): this {
+        super.addFields({ name, value, inline });
+        return this;
+    }
 }
