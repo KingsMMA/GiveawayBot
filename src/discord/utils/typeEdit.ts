@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import type { InteractionResponse, Message } from 'discord.js';
+import {ButtonInteraction, InteractionResponse, Message} from 'discord.js';
 import { CommandInteraction } from 'discord.js';
 
 import KingsDevEmbedBuilder from './kingsDevEmbedBuilder';
@@ -38,6 +38,11 @@ declare global {
 
 declare module 'discord.js' {
     interface CommandInteraction {
+        replySuccess(message: string, ephemeral?: boolean): Promise<Message | InteractionResponse>;
+        replyError(message: string, ephemeral?: boolean): Promise<Message | InteractionResponse>;
+    }
+
+    interface ButtonInteraction {
         replySuccess(message: string, ephemeral?: boolean): Promise<Message | InteractionResponse>;
         replyError(message: string, ephemeral?: boolean): Promise<Message | InteractionResponse>;
     }
@@ -103,7 +108,7 @@ Array.prototype.equals = function (array) {
     return true;
 };
 
-CommandInteraction.prototype.replySuccess = function (message: string, ephemeral?: boolean) {
+CommandInteraction.prototype.replySuccess = ButtonInteraction.prototype.replySuccess = function (message: string, ephemeral?: boolean) {
     if (this.replied || !this.isRepliable() || this.deferred)
         return this.editReply({
             embeds: [
@@ -125,7 +130,7 @@ CommandInteraction.prototype.replySuccess = function (message: string, ephemeral
         });
 };
 
-CommandInteraction.prototype.replyError = function (message: string, ephemeral?: boolean) {
+CommandInteraction.prototype.replyError = ButtonInteraction.prototype.replyError = function (message: string, ephemeral?: boolean) {
     if (this.replied || !this.isRepliable() || this.deferred)
         return this.editReply({
             embeds: [
