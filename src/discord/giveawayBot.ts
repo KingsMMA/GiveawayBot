@@ -57,8 +57,12 @@ export default class GiveawayBot extends Client {
         const url = message_url.split('/');
         const channel_id = url[5];
         const message_id = url[6];
-        const channel = await this.channels.fetch(channel_id) as GuildTextBasedChannel;
-        const message = await channel.messages.fetch(message_id);
+        const channel = await this.channels.fetch(channel_id)
+            .catch(() => undefined) as GuildTextBasedChannel | undefined;
+        if (!channel) return;
+        const message = await channel.messages.fetch(message_id)
+            .catch(() => undefined);
+        if (!message) return;
 
         const entries = giveaway.entries.length;
         let giveawayEntries = giveaway.entries.map(entry => `<@${entry}>`);
