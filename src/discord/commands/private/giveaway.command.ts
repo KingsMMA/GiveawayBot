@@ -168,8 +168,10 @@ export default class GiveawayCommand extends BaseCommand {
         if (!giveaway)
             return interaction.replyError('The giveaway could not be found.');
 
-        const channel_id = messageUrl.split('/').slice(-2)[0];
-        const message_id = messageUrl.split('/').slice(-1)[0];
+        const channel_id = messageUrl.split('/')
+            .slice(-2)[0];
+        const message_id = messageUrl.split('/')
+            .slice(-1)[0];
         const channel = await interaction.guild!.channels.fetch(channel_id)
             .catch(() => undefined);
         if (!channel)
